@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>땡또뽑기</title>
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            margin: 20px;
+            background-color: #fff8e1;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: auto;
+            text-align: center;
+            padding: 20px;
+            border: 2px solid #d62828;
+            border-radius: 15px;
+            background-color: #fff4e6;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #b71c1c;
+            font-size: 2.5rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        p {
+            color: #6d4c41;
+            font-size: 1.2rem;
+        }
+        input {
+            padding: 10px;
+            margin: 10px;
+            font-size: 1rem;
+            border: 1px solid #a1887f;
+            border-radius: 5px;
+            color: #5d4037;
+            background-color: #fbe9e7;
+        }
+        button {
+            background-color: #ef6c00;
+            color: white;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #e65100;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 1.2rem;
+            color: #bf360c;
+            font-weight: bold;
+        }
+        .history {
+            margin-top: 20px;
+            text-align: left;
+        }
+        .history-entry {
+            margin-bottom: 10px;
+            color: #795548;
+        }
+        .reset-container {
+            margin-top: 20px;
+        }
+        .emoji {
+            font-size: 1.5rem;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎄 땡또뽑기 🎄</h1>
+        <p> ✨편지를 받을 땡또를 확인하세요✨</p>
+        <input type="text" id="username" placeholder=" 당신의 이름을 입력해주세요" />
+        <button id="actionButton">결과 확인</button>
+        <div class="result" id="result"></div>
+        <div id="resetContainer" class="reset-container" style="display: none;">
+            <button id="resetButton">🔄 Reset Assignments</button>
+        </div>
+        <div class="history" id="history">
+            <h3>📜 History</h3>
+            <div id="historyEntries"></div>
+        </div>
+    </div>
+
+    <script>
+        let assignments = {};
+        const participants = ["김승환", "신용하", "이수빈", "박상민", "박미지"];
+        const history = [];
+
+        function initializeAssignments() {
+            assignments = {};
+            let assignedCounts = {};
+            participants.forEach(participant => assignedCounts[participant] = 0);
+
+            participants.forEach(participant => {
+                let others = participants.filter(
+                    name => name !== participant && assignedCounts[name] < 2
+                );
+                others = others.sort(() => Math.random() - 0.5);
+
+                const chosen = others.slice(0, 2);
+                assignments[participant] = chosen;
+
+                chosen.forEach(name => assignedCounts[name]++);
+            });
+        }
+
+        initializeAssignments();
+
+        document.getElementById("actionButton").addEventListener("click", () => {
+            const username = document.getElementById("username").value.trim();
+
+            if (username === "초기화") {
+                document.getElementById("resetContainer").style.display = "block";
+                document.getElementById("result").textContent = "초기화를 진행할 수 있는 버튼이 활성화되었습니다.";
+                return;
+            }
+
+            if (!assignments[username]) {
+                alert("❌ Invalid name. Please enter a valid participant name.");
+                return;
+            }
+
+            // Get assigned participants
+            const assigned = assignments[username];
+
+            // Update history
+            const timestamp = new Date().toLocaleString();
+            history.push({ username, timestamp });
+
+            // Display history
+            const historyEntries = document.getElementById("historyEntries");
+            const entry = document.createElement("div");
+            entry.className = "history-entry";
+            entry.innerHTML = `<span class='emoji'></span> ${timestamp}: 🎅${username}님이 편지 쓸 상대를 확인했습니다.`;
+            historyEntries.appendChild(entry);
+
+            // Display result
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `<span class='emoji'>🎁</span> ${username}님의 편지를 받을 사람: ${assigned.join(", ")}`;
+        });
+
+        document.getElementById("resetButton").addEventListener("click", () => {
+            initializeAssignments();
+            document.getElementById("resetContainer").style.display = "none";
+            document.getElementById("result").textContent = "Assignments have been reset.";
+            document.getElementById("historyEntries").innerHTML = "";
+            alert("✔️ All assignments have been reset successfully!");
+        });
+    </script>
+</body>
+</html>
