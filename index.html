@@ -89,8 +89,8 @@
     </div>
 
     <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 
     <script>
         // Firebase 설정
@@ -104,15 +104,14 @@
             appId: "1:386475034753:web:00fa9c7d17b0cd91236580"
         };
 
-
         // Firebase 초기화
-        const app = firebase.initializeApp(firebaseConfig);
+        firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
         // 참가자 및 초기화 로직
         let assignments = {};
         const participants = ["김승환", "신용하", "이수빈", "박상민", "박미지"];
-        const history = [];
+        const historyRef = firebase.database().ref('history');
 
         function initializeAssignments() {
             assignments = {};
@@ -163,41 +162,40 @@
             const resultDiv = document.getElementById("result");
             resultDiv.innerHTML = `<span class='emoji'>🎁</span> ${username}님의 편지를 받을 사람: ${assigned.join(", ")}`;
 
-            // 히스토리 저장
-            const historyRef = firebase.database().ref('history');
+            // 히스토리 저장 (UI 업데이트 포함)
             historyRef.push({
                 username: username,
                 timestamp: timestamp
             });
+        });
+
+        // 히스토리 실시간 업데이트 (중복 방지)
+        historyRef.on('child_added', (snapshot) => {
+            const data = snapshot.val();
             const historyEntries = document.getElementById("historyEntries");
+
             const entry = document.createElement("div");
             entry.className = "history-entry";
-            entry.innerHTML = `<span class='emoji'>🕒</span> ${timestamp}: 🎅 ${username}님이 확인했습니다.`;
+            entry.innerHTML = `<span class='emoji'>🕒</span> ${data.timestamp}: 🎅 ${data.username}님이 확인했습니다.`;
             historyEntries.appendChild(entry);
         });
 
         // 초기화 버튼
         document.getElementById("resetButton").addEventListener("click", () => {
+            // Assignments 초기화
             initializeAssignments();
             document.getElementById("resetContainer").style.display = "none";
             document.getElementById("result").textContent = "Assignments have been reset.";
             document.getElementById("historyEntries").innerHTML = "";
-            alert("✔️ 랜덤 배정이 초기화되었습니다!");
-        });
 
-        // Firebase 히스토리 실시간 읽기
-        const historyRef = firebase.database().ref('history');
-        historyRef.on('value', (snapshot) => {
-            const data = snapshot.val();
-            const historyEntries = document.getElementById("historyEntries");
-            historyEntries.innerHTML = "";
-
-            for (let key in data) {
-                const entry = document.createElement("div");
-                entry.className = "history-entry";
-                entry.innerHTML = `<span class='emoji'>🕒</span> ${data[key].timestamp}: 🎅 ${data[key].username}님이 기록되었습니다.`;
-                historyEntries.appendChild(entry);
-            }
+            // Firebase 히스토리 삭제
+            historyRef.remove()
+                .then(() => {
+                    alert("✔️ 모든 히스토리와 배정이 초기화되었습니다!");
+                })
+                .catch((error) => {
+                    console.error("초기화 중 오류 발생:", error);
+                });
         });
     </script>
 </body>
