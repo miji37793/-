@@ -91,7 +91,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
     <script>
-        // Firebase 설정 정보
         const firebaseConfig = {
             apiKey: "YOUR_API_KEY",
             authDomain: "YOUR_AUTH_DOMAIN",
@@ -102,7 +101,6 @@
             appId: "YOUR_APP_ID"
         };
 
-        // Firebase 초기화
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
@@ -126,12 +124,14 @@
 
                 chosen.forEach(name => assignedCounts[name]++);
             });
+            console.log("초기화된 assignments 객체:", assignments);
         }
 
         initializeAssignments();
 
         document.getElementById("actionButton").addEventListener("click", () => {
             const username = document.getElementById("username").value.trim();
+            console.log("입력된 이름:", username);
 
             if (username === "초기화") {
                 document.getElementById("resetContainer").style.display = "block";
@@ -139,24 +139,28 @@
                 return;
             }
 
-            if (!username || !assignments[username]) {
-                alert("❌ 이름을 정확히 입력해주세요.");
+            if (!username) {
+                alert("이름을 입력해주세요.");
+                console.log("입력이 비어 있음");
+                return;
+            }
+
+            if (!assignments[username]) {
+                alert("❌ 이름이 올바르지 않습니다.");
+                console.log("입력된 이름이 assignments에 없음:", username);
                 return;
             }
 
             const assigned = assignments[username];
+            console.log("배정된 결과:", assigned);
+
             const timestamp = new Date().toLocaleString();
-
-            // 히스토리 업데이트 및 Firebase 저장
-            history.push({ username, timestamp });
-            const historyRef = db.ref('history');
-            historyRef.push({ username, timestamp });
-
-            // 결과 출력
             const resultDiv = document.getElementById("result");
             resultDiv.innerHTML = `<span class='emoji'>🎁</span> ${username}님의 편지를 받을 사람: ${assigned.join(", ")}`;
 
             // 히스토리 업데이트
+            const historyRef = db.ref('history');
+            historyRef.push({ username, timestamp });
             const historyEntries = document.getElementById("historyEntries");
             const entry = document.createElement("div");
             entry.className = "history-entry";
