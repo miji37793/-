@@ -64,6 +64,7 @@
         }
         .reset-container {
             margin-top: 20px;
+            display: none; /* 초기화 버튼 기본적으로 숨김 */
         }
         .emoji {
             font-size: 1.5rem;
@@ -78,7 +79,7 @@
         <input type="text" id="username" placeholder=" 당신의 이름을 입력해주세요" />
         <button id="actionButton">결과 확인</button>
         <div class="result" id="result"></div>
-        <div id="resetContainer" class="reset-container" style="display: none;">
+        <div id="resetContainer" class="reset-container">
             <button id="resetButton">🔄 Reset Assignments</button>
         </div>
         <div class="history" id="history">
@@ -92,13 +93,13 @@
     <script>
         // Firebase 설정 정보
         const firebaseConfig = {
-            apiKey: "AIzaSyAZv3mU2D6cUT_vEUrvNQvFulHYmk0kvOM",
-            authDomain: "projectindex-7bba1.firebaseapp.com",
-            databaseURL: "https://projectindex-7bba1-default-rtdb.firebaseio.com",
-            projectId: "projectindex-7bba1",
-            storageBucket: "projectindex-7bba1.firebasestorage.app",
-            messagingSenderId: "386475034753",
-            appId: "1:386475034753:web:00fa9c7d17b0cd91236580"
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            databaseURL: "YOUR_DATABASE_URL",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
         };
 
         // Firebase 초기화
@@ -138,32 +139,29 @@
                 return;
             }
 
-            if (!assignments[username]) {
-                alert("❌ Invalid name. Please enter a valid participant name.");
+            if (!username || !assignments[username]) {
+                alert("❌ 이름을 정확히 입력해주세요.");
                 return;
             }
 
-            // Get assigned participants
             const assigned = assignments[username];
-
-            // Update history
             const timestamp = new Date().toLocaleString();
-            history.push({ username, timestamp });
 
-            // Firebase에 히스토리 저장
+            // 히스토리 업데이트 및 Firebase 저장
+            history.push({ username, timestamp });
             const historyRef = db.ref('history');
             historyRef.push({ username, timestamp });
 
-            // Display history
+            // 결과 출력
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = `<span class='emoji'>🎁</span> ${username}님의 편지를 받을 사람: ${assigned.join(", ")}`;
+
+            // 히스토리 업데이트
             const historyEntries = document.getElementById("historyEntries");
             const entry = document.createElement("div");
             entry.className = "history-entry";
-            entry.innerHTML = `<span class='emoji'>🕒</span> ${timestamp}: 🎅${username}님이 편지 쓸 상대를 확인했습니다.`;
+            entry.innerHTML = `<span class='emoji'>🕒</span> ${timestamp}: 🎅 ${username}님이 확인했습니다.`;
             historyEntries.appendChild(entry);
-
-            // Display result
-            const resultDiv = document.getElementById("result");
-            resultDiv.innerHTML = `<span class='emoji'>🎁</span> ${username}님의 편지를 받을 사람: ${assigned.join(", ")}`;
         });
 
         document.getElementById("resetButton").addEventListener("click", () => {
@@ -171,20 +169,19 @@
             document.getElementById("resetContainer").style.display = "none";
             document.getElementById("result").textContent = "Assignments have been reset.";
             document.getElementById("historyEntries").innerHTML = "";
-            alert("✔️ All assignments have been reset successfully!");
+            alert("✔️ 랜덤 배정이 초기화되었습니다!");
         });
 
-        // Firebase에서 히스토리 로드 및 표시
         const historyRef = db.ref('history');
         historyRef.on('value', (snapshot) => {
             const data = snapshot.val();
             const historyEntries = document.getElementById("historyEntries");
-            historyEntries.innerHTML = ""; // 기존 내용을 초기화
+            historyEntries.innerHTML = "";
 
             for (let key in data) {
                 const entry = document.createElement("div");
                 entry.className = "history-entry";
-                entry.innerHTML = `<span class='emoji'>🕒</span> ${data[key].timestamp}: 🎅${data[key].username}님이 편지 쓸 상대를 확인했습니다.`;
+                entry.innerHTML = `<span class='emoji'>🕒</span> ${data[key].timestamp}: 🎅 ${data[key].username}님이 기록되었습니다.`;
                 historyEntries.appendChild(entry);
             }
         });
