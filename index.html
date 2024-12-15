@@ -64,7 +64,7 @@
         }
         .reset-container {
             margin-top: 20px;
-            display: none; /* 초기화 버튼 기본적으로 숨김 */
+            display: none;
         }
         .emoji {
             font-size: 1.5rem;
@@ -88,22 +88,28 @@
         </div>
     </div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.15.0/firebase-database.js"></script>
+
     <script>
+        // Firebase 설정
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            databaseURL: "YOUR_DATABASE_URL",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyAZv3mU2D6cUT_vEUrvNQvFulHYmk0kvOM",
+            authDomain: "projectindex-7bba1.firebaseapp.com",
+            databaseURL: "https://projectindex-7bba1-default-rtdb.firebaseio.com",
+            projectId: "projectindex-7bba1",
+            storageBucket: "projectindex-7bba1.firebasestorage.app",
+            messagingSenderId: "386475034753",
+            appId: "1:386475034753:web:00fa9c7d17b0cd91236580"
         };
 
+
+        // Firebase 초기화
         const app = firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
 
+        // 참가자 및 초기화 로직
         let assignments = {};
         const participants = ["김승환", "신용하", "이수빈", "박상민", "박미지"];
         const history = [];
@@ -129,6 +135,7 @@
 
         initializeAssignments();
 
+        // 결과 확인 버튼
         document.getElementById("actionButton").addEventListener("click", () => {
             const username = document.getElementById("username").value.trim();
             console.log("입력된 이름:", username);
@@ -140,14 +147,12 @@
             }
 
             if (!username) {
-                alert("이름을 입력해주세요.");
-                console.log("입력이 비어 있음");
+                alert("❌ 이름을 입력해주세요.");
                 return;
             }
 
             if (!assignments[username]) {
-                alert("❌ 이름이 올바르지 않습니다.");
-                console.log("입력된 이름이 assignments에 없음:", username);
+                alert("❌ 입력한 이름이 잘못되었습니다.");
                 return;
             }
 
@@ -158,9 +163,12 @@
             const resultDiv = document.getElementById("result");
             resultDiv.innerHTML = `<span class='emoji'>🎁</span> ${username}님의 편지를 받을 사람: ${assigned.join(", ")}`;
 
-            // 히스토리 업데이트
-            const historyRef = db.ref('history');
-            historyRef.push({ username, timestamp });
+            // 히스토리 저장
+            const historyRef = firebase.database().ref('history');
+            historyRef.push({
+                username: username,
+                timestamp: timestamp
+            });
             const historyEntries = document.getElementById("historyEntries");
             const entry = document.createElement("div");
             entry.className = "history-entry";
@@ -168,6 +176,7 @@
             historyEntries.appendChild(entry);
         });
 
+        // 초기화 버튼
         document.getElementById("resetButton").addEventListener("click", () => {
             initializeAssignments();
             document.getElementById("resetContainer").style.display = "none";
@@ -176,7 +185,8 @@
             alert("✔️ 랜덤 배정이 초기화되었습니다!");
         });
 
-        const historyRef = db.ref('history');
+        // Firebase 히스토리 실시간 읽기
+        const historyRef = firebase.database().ref('history');
         historyRef.on('value', (snapshot) => {
             const data = snapshot.val();
             const historyEntries = document.getElementById("historyEntries");
